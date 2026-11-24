@@ -1,0 +1,25 @@
+:root { color-scheme: light dark; --gold: #b8860b; --ink: #1f2328; --paper: #fff; --line: #d6d9dd; --bad: #b42318; --good: #116329; }
+@media (prefers-color-scheme: dark) { :root { --ink: #e8eaed; --paper: #1c1f24; --line: #3a3f47; --bad: #ff8a80; --good: #7ee2a8; --gold: #e0b040; } body { background: #121417; } }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 2rem 1rem; font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: #f5f4ef; }
+.card { max-width: 46rem; margin: 0 auto; padding: 2rem; background: var(--paper); border: 1px solid var(--line); border-top: 4px solid var(--gold); border-radius: 8px; }
+h1 { margin: 0 0 1rem; font-size: 1.5rem; }
+label { display: block; margin-top: 1rem; font-weight: 600; }
+input, textarea { width: 100%; padding: .6rem; font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 4px; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.invalid { border-color: var(--bad); }
+.field-error, .alert { color: var(--bad); }
+.field-error { margin: .25rem 0 0; font-size: .9rem; }
+.success { color: var(--good); font-weight: 600; }
+.hint { margin-top: 1.5rem; font-size: .9rem; opacity: .8; }
+.trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+button { margin-top: 1.25rem; padding: .6rem 1.25rem; font: inherit; font-weight: 600; color: #1f2328; background: var(--gold); border: 0; border-radius: 4px; cursor: pointer; }
+button.secondary { margin: 0; color: inherit; background: transparent; border: 1px solid var(--line); }
+button.danger { margin: 0; color: #fff; background: #b42318; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: .5rem; text-align: left; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.pager { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
+dt { margin-top: .75rem; font-weight: 600; }
+dd { margin: 0; overflow-wrap: anywhere; }
+.message { white-space: pre-wrap; }

@@ -1,0 +1,6 @@
+parameters:
+    level: 5
+    paths:
+        - backend/src
+        - backend/public
+        - backend/bin

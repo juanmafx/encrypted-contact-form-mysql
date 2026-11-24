@@ -1,0 +1,34 @@
+# Changelog
+
+This project follows [Semantic Versioning](https://semver.org/).
+
+## [2.0.0] - Unreleased
+
+Complete rewrite. There is no upgrade path from the 2015 script, which stored nothing.
+
+### Added
+
+- Encrypted submission storage using XChaCha20-Poly1305 with key rotation support.
+- Admin area with Argon2id passwords and TOTP two-factor authentication.
+- CSRF protection, Origin and Fetch Metadata checks, rate limiting and a honeypot field.
+- Security headers, including a Content Security Policy that allows no scripts.
+- Admin audit log, retention purge and an operator CLI.
+- MySQL schema, unit, functional and integration tests, static analysis and a CI workflow.
+- Architecture, security and release documentation.
+
+### Changed
+
+- Separated the code into `backend/` and `frontend/`.
+- Translated all identifiers, interface text and documentation to English.
+- Moved configuration to validated environment variables.
+- Notifications are plain text and omit personal data by default.
+- Requires PHP 8.4 or later.
+
+### Removed
+
+- The bundled 2001-2003 PHPMailer copy, replaced by maintained PHPMailer 7 through Composer.
+- File upload handling.
+
+### Security
+
+- Fixed reflected and email HTML injection, mail header injection through sender fields, and unrestricted file upload into the web root.

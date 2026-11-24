@@ -1,0 +1,127 @@
+Admin Cli (FormularioDorado\Tests\Unit\AdminCli)
+ [x] Create stores hashed password and encrypted secret
+ [x] Create rejects weak password and bad username
+ [x] Reset totp clears replay state
+ [x] Unknown command prints usage
+ [x] Purge reports counts
+
+Admin Flow (FormularioDorado\Tests\Functional\AdminFlow)
+ [x] Submissions require authentication
+ [x] Password alone does not grant access
+ [x] Full login reads decrypted submission and audits
+ [x] Stored xss is escaped in admin views
+ [x] Wrong password and unknown user get same response
+ [x] Login is rate limited
+ [x] Wrong totp is rejected and rate limited
+ [x] Totp code cannot be replayed
+ [x] Pending login expires
+ [x] Session is regenerated at each privilege change
+ [x] Idle session expires
+ [x] Absolute session lifetime is enforced
+ [x] Delete removes submission and audits
+ [x] Delete requires csrf token
+ [x] Logout ends session
+
+App Config (FormularioDorado\Tests\Unit\AppConfig)
+ [x] Valid configuration loads
+ [x] Invalid configuration fails closed with data set "unknown environment"
+ [x] Invalid configuration fails closed with data set "http in production"
+ [x] Invalid configuration fails closed with data set "plain SMTP in production"
+ [x] Invalid configuration fails closed with data set "short data key"
+ [x] Invalid configuration fails closed with data set "malformed key entry"
+ [x] Invalid configuration fails closed with data set "active key missing"
+ [x] Invalid configuration fails closed with data set "short IP hash key"
+ [x] Invalid configuration fails closed with data set "invalid recipient"
+ [x] Invalid configuration fails closed with data set "invalid proxy"
+ [x] Invalid configuration fails closed with data set "invalid retention"
+ [x] Invalid configuration fails closed with data set "invalid port"
+
+Client Ip Resolver (FormularioDorado\Tests\Unit\ClientIpResolver)
+ [x] Forwarded header is ignored from untrusted peer
+ [x] Rightmost untrusted address is used
+ [x] Malformed forwarded header falls back to peer
+
+Contact Flow (FormularioDorado\Tests\Functional\ContactFlow)
+ [x] Form renders in english with security headers
+ [x] Valid submission is encrypted stored and notified
+ [x] Mail failure keeps submission
+ [x] Missing csrf token is rejected
+ [x] Cross origin post is rejected
+ [x] Same origin post is accepted
+ [x] Validation errors escape reflected input
+ [x] Header injection is rejected
+ [x] Honeypot silently discards
+ [x] Rate limit blocks sixth submission
+ [x] Oversized body is rejected
+ [x] Stylesheet is served and unknown route is 404
+
+Contact Validator (FormularioDorado\Tests\Unit\ContactValidator)
+ [x] Valid input produces message
+ [x] Message is optional and line endings normalize
+ [x] Invalid input is rejected with data set "empty name"
+ [x] Invalid input is rejected with data set "name with CRLF header injection"
+ [x] Invalid input is rejected with data set "name with LF"
+ [x] Invalid input is rejected with data set "name with NUL"
+ [x] Invalid input is rejected with data set "name with line separator"
+ [x] Invalid input is rejected with data set "name too long"
+ [x] Invalid input is rejected with data set "name as array"
+ [x] Invalid input is rejected with data set "name invalid UTF-8"
+ [x] Invalid input is rejected with data set "email with CRLF"
+ [x] Invalid input is rejected with data set "email malformed"
+ [x] Invalid input is rejected with data set "email too long"
+ [x] Invalid input is rejected with data set "phone with letters"
+ [x] Invalid input is rejected with data set "phone too short"
+ [x] Invalid input is rejected with data set "phone with trailing newline"
+ [x] Invalid input is rejected with data set "message too long"
+ [x] Invalid input is rejected with data set "message with control byte"
+ [x] Invalid input is rejected with data set "message invalid UTF-8"
+
+Csrf Guard (FormularioDorado\Tests\Unit\CsrfGuard)
+ [x] Token is stable and valid
+ [x] Invalid tokens are rejected
+ [x] Rotation invalidates previous token
+
+Field Cipher (FormularioDorado\Tests\Unit\FieldCipher)
+ [x] Round trip preserves unicode
+ [x] Same plaintext produces different ciphertexts
+ [x] Ciphertext does not contain plaintext
+ [x] Ciphertext cannot move between contexts
+ [x] Tampered ciphertext is rejected
+ [x] Rotation keeps old ciphertext readable
+ [x] Unknown key is rejected
+ [x] Malformed payload is rejected
+
+Password Hasher (FormularioDorado\Tests\Unit\PasswordHasher)
+ [x] Hash uses argon 2id with expected cost
+ [x] Hashes are salted and verify
+ [x] Short password is rejected
+ [x] Oversized password is rejected
+ [x] Weaker hash needs rehash
+
+Persistence (FormularioDorado\Tests\Integration\Persistence)
+ [x] Submission lifecycle
+ [x] Paging orders newest first
+ [x] Retention purge deletes only old rows
+ [x] Injection payload is treated as data
+ [x] Admin lifecycle and atomic totp claim
+ [x] Schema rejects duplicate and invalid usernames
+ [x] Audit log persists entries
+ [x] Rate limiter counts and resets window
+
+Php Mailer Notifier (FormularioDorado\Tests\Unit\PhpMailerNotifier)
+ [x] Default notification omits personal data
+ [x] Opt in notification uses reply to and fixed sender
+ [x] Transport requires encryption by default
+
+Throttle Policy (FormularioDorado\Tests\Unit\ThrottlePolicy)
+ [x] Contact limit applies per address and resets after window
+ [x] Login pair limit and clear
+ [x] Totp limit
+
+Totp Service (FormularioDorado\Tests\Unit\TotpService)
+ [x] Matches rfc 6238 vector truncated to six digits
+ [x] Rejects wrong and malformed codes
+ [x] Rejects replay of used step
+ [x] Accepts one step of clock drift only
+ [x] Provisioning uri names issuer and account
+

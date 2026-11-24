@@ -1,0 +1,6 @@
+Command: vendor/bin/phpunit --log-junit reports/tests/junit.xml --testdox-text reports/tests/testdox.txt
+Date (UTC): 2026-11-24T01:45:36Z
+Runtime: PHP 8.4.28 in the php:8.4-cli container
+Database: MySQL 8.4.13, disposable container
+Result: OK (101 tests, 257 assertions)
+Coverage: not measured

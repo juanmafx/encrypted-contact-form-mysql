@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [master, modernize/2026]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+    services:
+      mysql:
+        image: mysql@sha256:cd05748e60471137face0ba0a256c9c48669198aee1f12132f413fc91fd8948f
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_DATABASE: fd_test
+          MYSQL_USER: fd_test
+          MYSQL_PASSWORD: fd_test_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ufd_test -pfd_test_only"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_mysql, sodium, dom, xml, xmlwriter
+          coverage: none
+          tools: composer:2.9.5
+      - run: composer validate --no-check-publish --no-plugins
+      - run: composer install --no-interaction --no-progress --no-scripts --no-plugins --prefer-dist
+      - run: composer audit --locked --no-plugins
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+      - run: vendor/bin/phpunit
+        env:
+          TEST_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=fd_test;charset=utf8mb4
+          TEST_DB_USER: fd_test
+          TEST_DB_PASSWORD: fd_test_only
