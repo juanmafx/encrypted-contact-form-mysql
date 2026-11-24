@@ -45,15 +45,22 @@ Argon2id hashing, TOTP with replay protection, field-level authenticated encrypt
 
 gitleaks reported one match in history: the public RFC 6238 test vector in a unit test, which is a false positive. The current tree no longer contains that literal. No private keys, cloud or platform tokens, or hardcoded passwords were found. Scanning is pattern-based, so it cannot prove absence.
 
+On 2026-11-24 the public history was rewritten so that only the 2026 modernization commits remain. Pre-2026 commits are no longer in any branch or tag, although GitHub may still serve them by direct commit hash until it purges unreferenced objects. Treat anything that was ever published in that history as compromised.
+
 ## Open items
 
 | Severity | Item | Owner action |
 | --- | --- | --- |
-| Info | The removed legacy mailer remains in Git history | Do not deploy old revisions |
-| Info | Commit metadata and one early revision of the legacy script contain personal email addresses | Decide whether this is acceptable; changing it requires a history rewrite |
 | Low | A distributed attacker can temporarily block sign-in for a known username through the per-username limit | Accepted trade-off; monitor failed sign-ins |
 | Low | A tampered ciphertext row makes its admin list page return an error | Requires database write access; delete the affected row |
 | Low | No independent penetration test has been performed | Commission one before handling sensitive data |
+
+## Resolved items
+
+| Severity | Item | Resolution |
+| --- | --- | --- |
+| Info | The removed legacy mailer was in Git history | Resolved by the 2026-11-24 history rewrite. Do not deploy copies of old revisions. |
+| Info | Commit metadata and one early revision of the legacy script contained personal email addresses | Resolved by the 2026-11-24 history rewrite |
 
 ## Dependency status
 

@@ -3,7 +3,7 @@
     "description": "Secure contact form with an encrypted submission store and a TOTP-protected admin area.",
     "type": "project",
     "license": "proprietary",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "require": {
         "php": ">=8.4.1 <8.6",
         "ext-mbstring": "*",

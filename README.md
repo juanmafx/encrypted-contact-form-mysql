@@ -166,7 +166,7 @@ Encryption protects a stolen database or backup. It does not protect against a c
 
 ## Credits and license
 
-- Email delivery uses [PHPMailer](https://github.com/PHPMailer/PHPMailer) (LGPL-2.1), installed through Composer. Versions before 2.0.0 bundled a 2001-2003 copy by Brent R. Matzelle under the LGPL; it was removed from the tree and remains in Git history under its original license.
+- Email delivery uses [PHPMailer](https://github.com/PHPMailer/PHPMailer) (LGPL-2.1), installed through Composer. Versions before 2.0.0 bundled a 2001-2003 copy by Brent R. Matzelle under the LGPL; it was removed in 2.0.0 and is no longer in the repository history.
 - TOTP uses [spomky-labs/otphp](https://github.com/Spomky-Labs/otphp) (MIT).
 
 This repository does not currently declare a license for its own code, so default copyright applies.

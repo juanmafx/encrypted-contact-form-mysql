@@ -1,26 +1,17 @@
-# Formulario Dorado 2.0.0
+# Formulario Dorado 2.0.1
 
-Version 2.0.0 rebuilds the 2015 single-file contact form as a small, tested application with encrypted storage and a two-factor admin area.
+Version 2.0.1 is a documentation release. It does not change code behaviour.
 
-## Highlights
+## Changes
 
-- Personal data is encrypted per field before storage.
-- Admin access requires an Argon2id-verified password and a single-use TOTP code, and credential changes end active sessions.
-- Requests are protected by CSRF, origin, rate limit and input validation checks.
-- The legacy bundled mailer is replaced by maintained PHPMailer 7.
-- The codebase, interface and documentation are fully in English.
-
-## Breaking changes
-
-- Requires PHP 8.4 or later, MySQL 8.4, and environment configuration.
-- The web root is now `backend/public`.
-- Form field names and routes changed.
-- File uploads are no longer supported.
+- The changelog marks 2.0.0 as released on 2026-11-24.
+- The README and security audit no longer say that pre-2026 code remains in Git history. On 2026-11-24 the public history was rewritten so that only the 2026 modernization commits remain.
+- The audit items about the legacy mailer and personal email addresses in old commits are marked resolved. Anything that was ever published in the old history should still be treated as compromised.
 
 ## Upgrading
 
-The previous version kept no database, so there is nothing to migrate. If an old deployment has files in the legacy upload directory, review and remove them. Follow the quick start in `README.md`, apply `db/schema.sql` and create an admin.
+No action is needed when upgrading from 2.0.0. See the 2.0.0 entry in `CHANGELOG.md` for the changes in the rewrite.
 
 ## Verification
 
-Results of the test run for this release are in `reports/tests/`. The contact, sign-in, TOTP, read, delete, sign-out and session revocation flows were also run in headless Chromium through a local TLS proxy. The CI workflow is included but has not run on GitHub yet, and no production deployment has been tested.
+The automated tests were run for this release. The CI workflow runs on GitHub for every push to `master`.

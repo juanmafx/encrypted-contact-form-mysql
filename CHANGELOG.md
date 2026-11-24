@@ -2,7 +2,15 @@
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [2.0.0] - Unreleased
+## [2.0.1] - 2026-11-24
+
+Documentation corrections only. No change in code behaviour.
+
+### Changed
+
+- Release notes, changelog, README and security audit now reflect the published 2.0.0 release and the 2026-11-24 history rewrite.
+
+## [2.0.0] - 2026-11-24
 
 Complete rewrite. There is no upgrade path from the 2015 script, which kept no database. Files it saved to the legacy upload directory on an old deployment are not migrated and should be reviewed and removed.
 
