@@ -19,7 +19,7 @@ Version 2.0.0 rebuilds the 2015 single-file contact form as a small, tested appl
 
 ## Upgrading
 
-The previous version kept no database, so there is nothing to migrate. If an old deployment has files in `archivos/`, review and remove them. Follow the quick start in `README.md`, apply `db/schema.sql` and create an admin.
+The previous version kept no database, so there is nothing to migrate. If an old deployment has files in the legacy upload directory, review and remove them. Follow the quick start in `README.md`, apply `db/schema.sql` and create an admin.
 
 ## Verification
 

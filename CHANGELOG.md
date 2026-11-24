@@ -4,7 +4,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [2.0.0] - Unreleased
 
-Complete rewrite. There is no upgrade path from the 2015 script, which kept no database. Files it saved to `archivos/` on an old deployment are not migrated and should be reviewed and removed.
+Complete rewrite. There is no upgrade path from the 2015 script, which kept no database. Files it saved to the legacy upload directory on an old deployment are not migrated and should be reviewed and removed.
 
 ### Added
 
