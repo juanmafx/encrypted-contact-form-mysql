@@ -20,6 +20,12 @@ final class AppConfigTest extends TestCase
         self::assertSame(365, $config->retentionDays);
     }
 
+    public function testDefaultPortIsOmittedFromOrigin(): void
+    {
+        self::assertSame('https://forms.example.test', TestConfig::create(['APP_URL' => 'https://forms.example.test:443'])->origin());
+        self::assertSame('http://forms.example.test', TestConfig::create(['APP_URL' => 'http://forms.example.test:80'])->origin());
+    }
+
     #[DataProvider('invalidEnvironments')]
     public function testInvalidConfigurationFailsClosed(array $overrides): void
     {
@@ -41,6 +47,9 @@ final class AppConfigTest extends TestCase
             'invalid proxy' => [['TRUSTED_PROXIES' => 'proxy.local']],
             'invalid retention' => [['RETENTION_DAYS' => '0']],
             'invalid port' => [['SMTP_PORT' => '70000']],
+            'URL with path' => [['APP_URL' => 'https://forms.example.test/contact']],
+            'URL with credentials' => [['APP_URL' => 'https://user:secret@forms.example.test']],
+            'URL with query' => [['APP_URL' => 'https://forms.example.test?next=1']],
         ];
     }
 }

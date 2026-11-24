@@ -18,7 +18,7 @@ final readonly class SecurityHeaders
             'Content-Security-Policy' => self::CONTENT_SECURITY_POLICY,
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'DENY',
-            'Referrer-Policy' => 'no-referrer',
+            'Referrer-Policy' => 'same-origin',
             'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
             'Cross-Origin-Opener-Policy' => 'same-origin',
             'Cross-Origin-Resource-Policy' => 'same-origin',

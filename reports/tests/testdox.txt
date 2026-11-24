@@ -2,6 +2,7 @@ Admin Cli (FormularioDorado\Tests\Unit\AdminCli)
  [x] Create stores hashed password and encrypted secret
  [x] Create rejects weak password and bad username
  [x] Reset totp clears replay state
+ [x] Credential commands revoke sessions
  [x] Unknown command prints usage
  [x] Purge reports counts
 
@@ -20,10 +21,18 @@ Admin Flow (FormularioDorado\Tests\Functional\AdminFlow)
  [x] Absolute session lifetime is enforced
  [x] Delete removes submission and audits
  [x] Delete requires csrf token
+ [x] Password change revokes active session
+ [x] Totp reset revokes active session
+ [x] Credential change invalidates pending login
+ [x] Transparent rehash keeps active session
+ [x] Cross site admin link keeps session and offers same origin continue
+ [x] Continue page escapes the path
+ [x] Same origin admin navigation skips continue page
  [x] Logout ends session
 
 App Config (FormularioDorado\Tests\Unit\AppConfig)
  [x] Valid configuration loads
+ [x] Default port is omitted from origin
  [x] Invalid configuration fails closed with data set "unknown environment"
  [x] Invalid configuration fails closed with data set "http in production"
  [x] Invalid configuration fails closed with data set "plain SMTP in production"
@@ -35,10 +44,14 @@ App Config (FormularioDorado\Tests\Unit\AppConfig)
  [x] Invalid configuration fails closed with data set "invalid proxy"
  [x] Invalid configuration fails closed with data set "invalid retention"
  [x] Invalid configuration fails closed with data set "invalid port"
+ [x] Invalid configuration fails closed with data set "URL with path"
+ [x] Invalid configuration fails closed with data set "URL with credentials"
+ [x] Invalid configuration fails closed with data set "URL with query"
 
 Client Ip Resolver (FormularioDorado\Tests\Unit\ClientIpResolver)
  [x] Forwarded header is ignored from untrusted peer
  [x] Rightmost untrusted address is used
+ [x] Equivalent ipv 6 spelling of proxy is trusted
  [x] Malformed forwarded header falls back to peer
 
 Contact Flow (FormularioDorado\Tests\Functional\ContactFlow)
@@ -96,6 +109,8 @@ Password Hasher (FormularioDorado\Tests\Unit\PasswordHasher)
  [x] Hashes are salted and verify
  [x] Short password is rejected
  [x] Oversized password is rejected
+ [x] Oversized password with valid prefix does not verify
+ [x] Oversized password still performs hashing work
  [x] Weaker hash needs rehash
 
 Persistence (FormularioDorado\Tests\Integration\Persistence)
@@ -104,6 +119,7 @@ Persistence (FormularioDorado\Tests\Integration\Persistence)
  [x] Retention purge deletes only old rows
  [x] Injection payload is treated as data
  [x] Admin lifecycle and atomic totp claim
+ [x] Only credential changes advance session version
  [x] Schema rejects duplicate and invalid usernames
  [x] Audit log persists entries
  [x] Rate limiter counts and resets window
@@ -116,6 +132,9 @@ Php Mailer Notifier (FormularioDorado\Tests\Unit\PhpMailerNotifier)
 Throttle Policy (FormularioDorado\Tests\Unit\ThrottlePolicy)
  [x] Contact limit applies per address and resets after window
  [x] Login pair limit and clear
+ [x] Ipv 6 addresses in one network share a bucket
+ [x] Ipv 4 mapped address shares bucket with ipv 4
+ [x] Blocked address cannot exhaust the username budget
  [x] Totp limit
 
 Totp Service (FormularioDorado\Tests\Unit\TotpService)

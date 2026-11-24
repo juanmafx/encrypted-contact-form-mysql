@@ -71,7 +71,7 @@ final readonly class AdminCli
             return $this->fail("Admin not found.\n", $output);
         }
 
-        $this->admins->updatePasswordHash($admin->id, $this->hasher->hash($this->readPassword($input, $output)));
+        $this->admins->changePassword($admin->id, $this->hasher->hash($this->readPassword($input, $output)));
         fwrite($output, "Password updated.\n");
 
         return 0;

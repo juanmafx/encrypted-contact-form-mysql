@@ -34,6 +34,7 @@ final class ContactFlowTest extends TestCase
         self::assertStringContainsString('name="csrf_token"', $response->body);
         self::assertStringContainsString("default-src 'none'", $response->headers['Content-Security-Policy']);
         self::assertSame('nosniff', $response->headers['X-Content-Type-Options']);
+        self::assertSame('same-origin', $response->headers['Referrer-Policy']);
         self::assertSame('no-store', $response->headers['Cache-Control']);
         self::assertArrayHasKey('Strict-Transport-Security', $response->headers);
     }

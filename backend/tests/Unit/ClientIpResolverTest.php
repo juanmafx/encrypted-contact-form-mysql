@@ -29,6 +29,13 @@ final class ClientIpResolverTest extends TestCase
         self::assertSame('203.0.113.7', $resolver->resolve($this->request('10.0.0.1', '192.0.2.66, 203.0.113.7, 10.0.0.2')));
     }
 
+    public function testEquivalentIpv6SpellingOfProxyIsTrusted(): void
+    {
+        $resolver = new ClientIpResolver(['2001:db8::1']);
+
+        self::assertSame('203.0.113.7', $resolver->resolve($this->request('2001:0db8:0:0:0:0:0:1', '203.0.113.7')));
+    }
+
     public function testMalformedForwardedHeaderFallsBackToPeer(): void
     {
         $resolver = new ClientIpResolver(['10.0.0.1']);

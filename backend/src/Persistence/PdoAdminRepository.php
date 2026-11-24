@@ -10,7 +10,7 @@ use PDO;
 
 final readonly class PdoAdminRepository implements AdminRepository
 {
-    private const string COLUMNS = 'id, username, password_hash, totp_secret_ciphertext, last_totp_step';
+    private const string COLUMNS = 'id, username, password_hash, totp_secret_ciphertext, last_totp_step, session_version';
 
     public function __construct(private PDO $pdo)
     {
@@ -48,10 +48,18 @@ final readonly class PdoAdminRepository implements AdminRepository
         $statement->execute([$passwordHash, $id]);
     }
 
+    public function changePassword(int $id, string $passwordHash): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE admin_users SET password_hash = ?, session_version = session_version + 1 WHERE id = ?',
+        );
+        $statement->execute([$passwordHash, $id]);
+    }
+
     public function replaceTotpSecret(int $id, string $totpSecretCiphertext): void
     {
         $statement = $this->pdo->prepare(
-            'UPDATE admin_users SET totp_secret_ciphertext = ?, last_totp_step = NULL WHERE id = ?',
+            'UPDATE admin_users SET totp_secret_ciphertext = ?, last_totp_step = NULL, session_version = session_version + 1 WHERE id = ?',
         );
         $statement->execute([$totpSecretCiphertext, $id]);
     }
@@ -78,6 +86,7 @@ final readonly class PdoAdminRepository implements AdminRepository
             (string) $row['password_hash'],
             (string) $row['totp_secret_ciphertext'],
             $row['last_totp_step'] === null ? null : (int) $row['last_totp_step'],
+            (int) $row['session_version'],
         );
     }
 }

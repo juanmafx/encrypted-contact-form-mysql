@@ -71,6 +71,18 @@ final class AdminCliTest extends TestCase
         self::assertNull($this->admins->findById(1)->lastTotpStep);
     }
 
+    public function testCredentialCommandsRevokeSessions(): void
+    {
+        $this->run_(['create', 'admin'], "a-long-enough-password\n");
+        self::assertSame(1, $this->admins->findById(1)->sessionVersion);
+
+        self::assertSame(0, $this->run_(['set-password', 'admin'], "another-long-password\n")[0]);
+        self::assertSame(2, $this->admins->findById(1)->sessionVersion);
+
+        self::assertSame(0, $this->run_(['reset-totp', 'admin'])[0]);
+        self::assertSame(3, $this->admins->findById(1)->sessionVersion);
+    }
+
     public function testUnknownCommandPrintsUsage(): void
     {
         [$code, $output] = $this->run_(['nope']);

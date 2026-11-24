@@ -22,4 +22,5 @@ This is a personal project, so responses are best effort and no response time is
 - Back up encryption keys separately from the database.
 - Use a least-privilege database account at runtime.
 - Set `TRUSTED_PROXIES` only to proxies you control.
+- Set `display_errors=Off` and `post_max_size=128K` in `php.ini`.
 - Run `composer audit` regularly and schedule the `purge` command.

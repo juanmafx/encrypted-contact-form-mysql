@@ -20,9 +20,11 @@ final readonly class AdminAuthenticator
 
     private const string PENDING_ID = 'pending_admin_id';
     private const string PENDING_AT = 'pending_admin_at';
+    private const string PENDING_VERSION = 'pending_admin_version';
     private const string ADMIN_ID = 'admin_id';
     private const string STARTED_AT = 'admin_started_at';
     private const string SEEN_AT = 'admin_seen_at';
+    private const string SESSION_VERSION = 'admin_session_version';
 
     public function __construct(
         private AdminRepository $admins,
@@ -71,6 +73,7 @@ final readonly class AdminAuthenticator
         $this->csrf->rotate();
         $this->session->set(self::PENDING_ID, $admin->id);
         $this->session->set(self::PENDING_AT, $this->now());
+        $this->session->set(self::PENDING_VERSION, $admin->sessionVersion);
 
         return AuthOutcome::Success;
     }
@@ -91,7 +94,9 @@ final readonly class AdminAuthenticator
         }
 
         $admin = $this->admins->findById($adminId);
-        if ($admin === null) {
+        if ($admin === null || $this->session->get(self::PENDING_VERSION) !== $admin->sessionVersion) {
+            $this->clearPending();
+
             return AuthOutcome::Invalid;
         }
 
@@ -102,14 +107,14 @@ final readonly class AdminAuthenticator
         }
 
         $this->throttle->clearTotp($admin->id);
-        $this->session->remove(self::PENDING_ID);
-        $this->session->remove(self::PENDING_AT);
+        $this->clearPending();
         $this->session->regenerate();
         $this->csrf->rotate();
         $now = $this->now();
         $this->session->set(self::ADMIN_ID, $admin->id);
         $this->session->set(self::STARTED_AT, $now);
         $this->session->set(self::SEEN_AT, $now);
+        $this->session->set(self::SESSION_VERSION, $admin->sessionVersion);
         $this->audit->record($admin->id, 'login', null);
 
         return AuthOutcome::Success;
@@ -120,12 +125,19 @@ final readonly class AdminAuthenticator
         $adminId = $this->session->get(self::ADMIN_ID);
         $startedAt = $this->session->get(self::STARTED_AT);
         $seenAt = $this->session->get(self::SEEN_AT);
-        if (!is_int($adminId) || !is_int($startedAt) || !is_int($seenAt)) {
+        $version = $this->session->get(self::SESSION_VERSION);
+        if (!is_int($adminId) || !is_int($startedAt) || !is_int($seenAt) || !is_int($version)) {
             return null;
         }
 
         $now = $this->now();
         if ($now - $seenAt > self::IDLE_TTL || $now - $startedAt > self::ABSOLUTE_TTL) {
+            $this->endSession();
+
+            return null;
+        }
+
+        if ($this->admins->findById($adminId)?->sessionVersion !== $version) {
             $this->endSession();
 
             return null;
@@ -153,13 +165,19 @@ final readonly class AdminAuthenticator
             return null;
         }
         if ($this->now() - $startedAt > self::PENDING_TTL) {
-            $this->session->remove(self::PENDING_ID);
-            $this->session->remove(self::PENDING_AT);
+            $this->clearPending();
 
             return null;
         }
 
         return $adminId;
+    }
+
+    private function clearPending(): void
+    {
+        $this->session->remove(self::PENDING_ID);
+        $this->session->remove(self::PENDING_AT);
+        $this->session->remove(self::PENDING_VERSION);
     }
 
     private function endSession(): void

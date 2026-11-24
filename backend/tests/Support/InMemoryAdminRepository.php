@@ -30,7 +30,7 @@ final class InMemoryAdminRepository implements AdminRepository
     public function create(string $username, string $passwordHash, string $totpSecretCiphertext): int
     {
         $id = count($this->rows) + 1;
-        $this->rows[$id] = new AdminUser($id, $username, $passwordHash, $totpSecretCiphertext, null);
+        $this->rows[$id] = new AdminUser($id, $username, $passwordHash, $totpSecretCiphertext, null, 1);
 
         return $id;
     }
@@ -38,13 +38,19 @@ final class InMemoryAdminRepository implements AdminRepository
     public function updatePasswordHash(int $id, string $passwordHash): void
     {
         $row = $this->rows[$id];
-        $this->rows[$id] = new AdminUser($id, $row->username, $passwordHash, $row->totpSecretCiphertext, $row->lastTotpStep);
+        $this->rows[$id] = new AdminUser($id, $row->username, $passwordHash, $row->totpSecretCiphertext, $row->lastTotpStep, $row->sessionVersion);
+    }
+
+    public function changePassword(int $id, string $passwordHash): void
+    {
+        $row = $this->rows[$id];
+        $this->rows[$id] = new AdminUser($id, $row->username, $passwordHash, $row->totpSecretCiphertext, $row->lastTotpStep, $row->sessionVersion + 1);
     }
 
     public function replaceTotpSecret(int $id, string $totpSecretCiphertext): void
     {
         $row = $this->rows[$id];
-        $this->rows[$id] = new AdminUser($id, $row->username, $row->passwordHash, $totpSecretCiphertext, null);
+        $this->rows[$id] = new AdminUser($id, $row->username, $row->passwordHash, $totpSecretCiphertext, null, $row->sessionVersion + 1);
     }
 
     public function claimTotpStep(int $id, int $step): bool
@@ -53,7 +59,7 @@ final class InMemoryAdminRepository implements AdminRepository
         if ($row->lastTotpStep !== null && $row->lastTotpStep >= $step) {
             return false;
         }
-        $this->rows[$id] = new AdminUser($id, $row->username, $row->passwordHash, $row->totpSecretCiphertext, $step);
+        $this->rows[$id] = new AdminUser($id, $row->username, $row->passwordHash, $row->totpSecretCiphertext, $step, $row->sessionVersion);
 
         return true;
     }

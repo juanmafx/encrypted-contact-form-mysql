@@ -15,21 +15,21 @@ final readonly class ThrottlePolicy
 
     public function allowContact(string $ip): bool
     {
-        return $this->limiter->hit($this->bucket('contact', $ip), 5, self::WINDOW);
+        return $this->limiter->hit($this->bucket('contact', IpAddress::rateLimitSubject($ip)), 5, self::WINDOW);
     }
 
     public function allowLogin(string $ip, string $username): bool
     {
-        $byIp = $this->limiter->hit($this->bucket('login-ip', $ip), 20, self::WINDOW);
-        $byPair = $this->limiter->hit($this->bucket('login-pair', $ip . '|' . $username), 5, self::WINDOW);
-        $byUser = $this->limiter->hit($this->bucket('login-user', $username), 30, self::LONG_WINDOW);
+        $network = IpAddress::rateLimitSubject($ip);
 
-        return $byIp && $byPair && $byUser;
+        return $this->limiter->hit($this->bucket('login-ip', $network), 20, self::WINDOW)
+            && $this->limiter->hit($this->bucket('login-pair', $network . '|' . $username), 5, self::WINDOW)
+            && $this->limiter->hit($this->bucket('login-user', $username), 30, self::LONG_WINDOW);
     }
 
     public function clearLogin(string $ip, string $username): void
     {
-        $this->limiter->clear($this->bucket('login-pair', $ip . '|' . $username));
+        $this->limiter->clear($this->bucket('login-pair', IpAddress::rateLimitSubject($ip) . '|' . $username));
     }
 
     public function allowTotp(int $adminId): bool

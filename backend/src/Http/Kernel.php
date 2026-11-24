@@ -48,6 +48,10 @@ final readonly class Kernel
             return $this->error('The request could not be verified. Reload the page and try again.', 403);
         }
 
+        if ($request->method === 'GET' && $this->isCrossSiteAdminNavigation($request)) {
+            return $this->renderer->page('admin/continue', 'Continue to admin', ['path' => $request->path]);
+        }
+
         $ip = $this->clientIp->resolve($request);
         $route = $request->method . ' ' . $request->path;
 
@@ -81,6 +85,12 @@ final readonly class Kernel
         }
 
         return $this->error('The requested page was not found.', 404);
+    }
+
+    private function isCrossSiteAdminNavigation(Request $request): bool
+    {
+        return in_array($request->header('sec-fetch-site'), ['cross-site', 'same-site'], true)
+            && ($request->path === '/admin' || str_starts_with($request->path, '/admin/'));
     }
 
     private function isTrustedPost(Request $request): bool

@@ -14,6 +14,8 @@ interface AdminRepository
 
     public function updatePasswordHash(int $id, string $passwordHash): void;
 
+    public function changePassword(int $id, string $passwordHash): void;
+
     public function replaceTotpSecret(int $id, string $totpSecretCiphertext): void;
 
     public function claimTotpStep(int $id, int $step): bool;

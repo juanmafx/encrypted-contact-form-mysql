@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FormularioDorado\Http;
 
+use FormularioDorado\Security\IpAddress;
+
 final readonly class ClientIpResolver
 {
     public function __construct(private array $trustedProxies)
@@ -13,7 +15,7 @@ final readonly class ClientIpResolver
     public function resolve(Request $request): string
     {
         $remote = $request->remoteAddress;
-        if (!in_array($remote, $this->trustedProxies, true)) {
+        if (!$this->isTrusted($remote)) {
             return $remote;
         }
 
@@ -22,11 +24,27 @@ final readonly class ClientIpResolver
             if (filter_var($candidate, FILTER_VALIDATE_IP) === false) {
                 return $remote;
             }
-            if (!in_array($candidate, $this->trustedProxies, true)) {
+            if (!$this->isTrusted($candidate)) {
                 return $candidate;
             }
         }
 
         return $remote;
+    }
+
+    private function isTrusted(string $address): bool
+    {
+        $canonical = IpAddress::canonical($address);
+        if ($canonical === null) {
+            return false;
+        }
+
+        foreach ($this->trustedProxies as $proxy) {
+            if (IpAddress::canonical($proxy) === $canonical) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -39,9 +39,15 @@ final readonly class AppConfig
         }
 
         $baseUrl = rtrim(self::required($env, 'APP_URL'), '/');
-        $scheme = parse_url($baseUrl, PHP_URL_SCHEME);
-        if (!in_array($scheme, ['http', 'https'], true) || parse_url($baseUrl, PHP_URL_HOST) === null) {
-            throw new ConfigurationError('APP_URL must be an absolute http or https URL.');
+        $urlParts = parse_url($baseUrl);
+        $scheme = is_array($urlParts) ? ($urlParts['scheme'] ?? null) : null;
+        if (
+            !is_array($urlParts)
+            || !in_array($scheme, ['http', 'https'], true)
+            || !isset($urlParts['host'])
+            || array_diff(array_keys($urlParts), ['scheme', 'host', 'port']) !== []
+        ) {
+            throw new ConfigurationError('APP_URL must be an absolute http or https origin without a path.');
         }
         if ($environment === 'production' && $scheme !== 'https') {
             throw new ConfigurationError('APP_URL must use https in production.');
@@ -113,7 +119,8 @@ final readonly class AppConfig
     public function origin(): string
     {
         $parts = parse_url($this->baseUrl);
-        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        $defaultPort = ($parts['scheme'] ?? '') === 'https' ? 443 : 80;
+        $port = isset($parts['port']) && $parts['port'] !== $defaultPort ? ':' . $parts['port'] : '';
 
         return strtolower(($parts['scheme'] ?? '') . '://' . ($parts['host'] ?? '')) . $port;
     }

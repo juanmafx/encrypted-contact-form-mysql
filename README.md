@@ -67,7 +67,17 @@ echo "DATA_ENCRYPTION_KEYS=v1:$(head -c 32 /dev/urandom | base64 -w0)"
 echo "IP_HASH_KEY=$(head -c 32 /dev/urandom | base64 -w0)"
 ```
 
-Create the database objects, load the environment and create the first admin:
+Create the database and a least-privilege runtime account, then set the same password as `DB_PASSWORD` in `.env`:
+
+```bash
+mysql -u root -p <<'SQL'
+CREATE DATABASE formulario_dorado CHARACTER SET utf8mb4;
+CREATE USER 'formulario_dorado'@'localhost' IDENTIFIED BY 'choose-a-strong-password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON formulario_dorado.* TO 'formulario_dorado'@'localhost';
+SQL
+```
+
+Apply the schema, load the environment and create the first admin:
 
 ```bash
 mysql -u root -p formulario_dorado < db/schema.sql
@@ -83,7 +93,7 @@ For local development only, set `APP_ENV=development`, `APP_URL=http://127.0.0.1
 php -S 127.0.0.1:8080 backend/public/index.php
 ```
 
-In production, point the web server document root at `backend/public` and route all requests to `index.php`. With PHP-FPM, pass the variables through the pool configuration, because `clear_env` hides them by default.
+In production, point the web server document root at `backend/public` and route all requests to `index.php`. With PHP-FPM, pass the variables through the pool configuration, because `clear_env` hides them by default. Set `display_errors=Off` and `post_max_size=128K` in `php.ini`: PHP handles an oversized body before the application runs, so these settings are what keep its startup warning out of responses.
 
 ## Usage guide
 
@@ -92,8 +102,9 @@ In production, point the web server document root at `backend/public` and route 
 | Send a message | Open `/` and submit the form |
 | Sign in as admin | Open `/admin`, enter the password, then the six-digit code |
 | Read or delete a submission | Use the list at `/admin/submissions` |
-| Change a password | `php backend/bin/admin.php set-password <username>` |
-| Replace a lost authenticator | `php backend/bin/admin.php reset-totp <username>` |
+| Open a link from a notification email | Choose **Continue** if asked; the session cookie is not sent on cross-site navigation |
+| Change a password (ends active sessions) | `php backend/bin/admin.php set-password <username>` |
+| Replace a lost authenticator (ends active sessions) | `php backend/bin/admin.php reset-totp <username>` |
 | Apply retention | `php backend/bin/admin.php purge` (schedule it daily) |
 
 There are no web-based recovery codes. Recovery from a lost authenticator requires shell access to run `reset-totp`.
@@ -105,7 +116,7 @@ All configuration comes from environment variables. The application refuses to s
 | Variable | Required | Default | Meaning |
 | --- | --- | --- | --- |
 | `APP_ENV` | yes | | `production`, `development` or `test` |
-| `APP_URL` | yes | | Public base URL; must be `https` in production |
+| `APP_URL` | yes | | Public origin with no path, query or credentials; must be `https` in production |
 | `DB_DSN`, `DB_USER` | yes | | MySQL connection |
 | `DB_PASSWORD` | no | empty | Database password |
 | `DATA_ENCRYPTION_KEYS` | yes | | Comma-separated `id:base64` 32-byte keys |
@@ -123,6 +134,8 @@ All configuration comes from environment variables. The application refuses to s
 **Key rotation:** add a new key to `DATA_ENCRYPTION_KEYS` and point `DATA_ENCRYPTION_ACTIVE_KEY` at it. Keep old keys configured, because existing rows are not re-encrypted automatically. Losing a key makes the data encrypted under it unrecoverable.
 
 ## Testing
+
+The test tools also need the `dom`, `xml` and `xmlwriter` extensions.
 
 ```bash
 composer install --no-scripts --no-plugins
@@ -145,8 +158,8 @@ Without `TEST_DB_DSN` the integration tests are reported as skipped. The output 
 - **Two-factor:** RFC 6238 TOTP, one step of clock drift, single-use codes enforced atomically in the database.
 - **Data at rest:** authenticated encryption per field, bound to the record and field so ciphertext cannot be moved between them.
 - **Web:** CSRF tokens, Origin and Fetch Metadata checks, contextual output escaping, and a strict Content Security Policy with no scripts.
-- **Sessions:** `HttpOnly`, `SameSite=Strict`, `Secure` with the `__Host-` prefix over HTTPS, regenerated at each privilege change, with idle and absolute timeouts.
-- **Abuse controls:** rate limits on submissions, password attempts and TOTP attempts, plus a honeypot field.
+- **Sessions:** `HttpOnly`, `SameSite=Strict`, `Secure` with the `__Host-` prefix over HTTPS, regenerated at each privilege change, with idle and absolute timeouts, and revoked when the admin's password or TOTP secret changes.
+- **Abuse controls:** rate limits on submissions, password attempts and TOTP attempts, with IPv6 clients grouped by /64 network, plus a honeypot field.
 - **Database:** prepared statements only, with emulation disabled.
 
 Encryption protects a stolen database or backup. It does not protect against a compromised application server, which holds the keys. See [SECURITY.md](SECURITY.md) to report a vulnerability and [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) for the audit.

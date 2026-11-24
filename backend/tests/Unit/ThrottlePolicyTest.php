@@ -39,6 +39,40 @@ final class ThrottlePolicyTest extends TestCase
         self::assertTrue($policy->allowLogin('192.0.2.1', 'admin'));
     }
 
+    public function testIpv6AddressesInOneNetworkShareABucket(): void
+    {
+        $policy = new ThrottlePolicy(new InMemoryRateLimiter(new FrozenClock(1000)), random_bytes(32));
+
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            self::assertTrue($policy->allowContact('2001:db8:1:1::' . dechex($attempt)));
+        }
+
+        self::assertFalse($policy->allowContact('2001:db8:1:1:ffff::1'));
+        self::assertTrue($policy->allowContact('2001:db8:1:2::1'));
+    }
+
+    public function testIpv4MappedAddressSharesBucketWithIpv4(): void
+    {
+        $policy = new ThrottlePolicy(new InMemoryRateLimiter(new FrozenClock(1000)), random_bytes(32));
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            self::assertTrue($policy->allowContact('192.0.2.1'));
+        }
+
+        self::assertFalse($policy->allowContact('::ffff:192.0.2.1'));
+    }
+
+    public function testBlockedAddressCannotExhaustTheUsernameBudget(): void
+    {
+        $policy = new ThrottlePolicy(new InMemoryRateLimiter(new FrozenClock(1000)), random_bytes(32));
+
+        for ($attempt = 0; $attempt < 40; $attempt++) {
+            $policy->allowLogin('192.0.2.1', 'admin');
+        }
+
+        self::assertTrue($policy->allowLogin('198.51.100.7', 'admin'));
+    }
+
     public function testTotpLimit(): void
     {
         $policy = new ThrottlePolicy(new InMemoryRateLimiter(new FrozenClock(1000)), random_bytes(32));

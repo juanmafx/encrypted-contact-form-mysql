@@ -54,6 +54,7 @@ final class NativeSessionStore implements SessionStore
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
+            'domain' => '',
             'secure' => $this->secure,
             'httponly' => true,
             'samesite' => 'Strict',

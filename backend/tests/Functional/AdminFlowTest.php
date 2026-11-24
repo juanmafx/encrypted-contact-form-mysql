@@ -7,6 +7,8 @@ namespace FormularioDorado\Tests\Functional;
 use FormularioDorado\Admin\AdminAuthenticator;
 use FormularioDorado\Contact\ContactMessage;
 use FormularioDorado\Contact\SubmissionService;
+use FormularioDorado\Http\Request;
+use FormularioDorado\Security\PasswordHasher;
 use FormularioDorado\Tests\Support\AppHarness;
 use PHPUnit\Framework\TestCase;
 
@@ -170,6 +172,74 @@ final class AdminFlowTest extends TestCase
 
         self::assertSame(403, $response->status);
         self::assertCount(1, $this->app->submissions->rows);
+    }
+
+    public function testPasswordChangeRevokesActiveSession(): void
+    {
+        $this->app->signIn();
+        self::assertSame(200, $this->app->get('/admin/submissions')->status);
+
+        $this->app->admins->changePassword(1, (new PasswordHasher())->hash('a-different-long-password'));
+
+        self::assertSame('/admin/login', $this->app->get('/admin/submissions')->headers['Location']);
+    }
+
+    public function testTotpResetRevokesActiveSession(): void
+    {
+        $this->app->signIn();
+
+        $this->app->admins->replaceTotpSecret(1, $this->app->admins->findById(1)->totpSecretCiphertext);
+
+        self::assertSame('/admin/login', $this->app->get('/admin/submissions')->headers['Location']);
+    }
+
+    public function testCredentialChangeInvalidatesPendingLogin(): void
+    {
+        $this->app->post('/admin/login', ['username' => 'admin', 'password' => AppHarness::PASSWORD]);
+        $this->app->admins->changePassword(1, (new PasswordHasher())->hash('a-different-long-password'));
+
+        self::assertSame(401, $this->app->post('/admin/verify', ['code' => $this->app->currentCode()])->status);
+        self::assertSame('/admin/login', $this->app->get('/admin/verify')->headers['Location']);
+        self::assertSame('/admin/login', $this->app->get('/admin/submissions')->headers['Location']);
+    }
+
+    public function testTransparentRehashKeepsActiveSession(): void
+    {
+        $this->app->signIn();
+
+        $this->app->admins->updatePasswordHash(1, (new PasswordHasher())->hash(AppHarness::PASSWORD));
+
+        self::assertSame(200, $this->app->get('/admin/submissions')->status);
+    }
+
+    public function testCrossSiteAdminLinkKeepsSessionAndOffersSameOriginContinue(): void
+    {
+        $id = $this->seedSubmission();
+        $this->app->signIn();
+        $path = '/admin/submissions/' . $id;
+        $auditEntries = count($this->app->audit->actions());
+
+        $response = $this->app->kernel->handle(new Request('GET', $path, [], [], ['sec-fetch-site' => 'cross-site'], '203.0.113.10'));
+
+        self::assertSame(200, $response->status);
+        self::assertStringContainsString('href="' . $path . '"', $response->body);
+        self::assertStringNotContainsString('Ada Lovelace', $response->body);
+        self::assertCount($auditEntries, $this->app->audit->actions());
+        self::assertSame(200, $this->app->get($path)->status);
+    }
+
+    public function testContinuePageEscapesThePath(): void
+    {
+        $response = $this->app->kernel->handle(new Request('GET', '/admin/"><img src=x>', [], [], ['sec-fetch-site' => 'cross-site'], '203.0.113.10'));
+
+        self::assertStringNotContainsString('<img', $response->body);
+    }
+
+    public function testSameOriginAdminNavigationSkipsContinuePage(): void
+    {
+        $response = $this->app->kernel->handle(new Request('GET', '/admin/submissions', [], [], ['sec-fetch-site' => 'same-origin'], '203.0.113.10'));
+
+        self::assertSame('/admin/login', $response->headers['Location']);
     }
 
     public function testLogoutEndsSession(): void

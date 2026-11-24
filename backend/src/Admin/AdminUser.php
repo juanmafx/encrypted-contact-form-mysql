@@ -12,6 +12,7 @@ final readonly class AdminUser
         public string $passwordHash,
         public string $totpSecretCiphertext,
         public ?int $lastTotpStep,
+        public int $sessionVersion,
     ) {
     }
 }

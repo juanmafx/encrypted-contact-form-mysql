@@ -118,6 +118,24 @@ final class PersistenceTest extends TestCase
         self::assertSame('$argon2id$other', $admins->findById($id)->passwordHash);
     }
 
+    public function testOnlyCredentialChangesAdvanceSessionVersion(): void
+    {
+        $admins = new PdoAdminRepository($this->pdo);
+        $id = $admins->create('admin', '$argon2id$placeholder', 'v1:secret');
+        self::assertSame(1, $admins->findById($id)->sessionVersion);
+
+        $admins->updatePasswordHash($id, '$argon2id$rehashed');
+        $admins->claimTotpStep($id, 100);
+        self::assertSame(1, $admins->findById($id)->sessionVersion);
+
+        $admins->changePassword($id, '$argon2id$changed');
+        self::assertSame('$argon2id$changed', $admins->findById($id)->passwordHash);
+        self::assertSame(2, $admins->findById($id)->sessionVersion);
+
+        $admins->replaceTotpSecret($id, 'v1:new');
+        self::assertSame(3, $admins->findById($id)->sessionVersion);
+    }
+
     public function testSchemaRejectsDuplicateAndInvalidUsernames(): void
     {
         $admins = new PdoAdminRepository($this->pdo);

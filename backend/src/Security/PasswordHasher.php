@@ -25,11 +25,9 @@ final readonly class PasswordHasher
 
     public function verify(string $password, string $hash): bool
     {
-        if (strlen($password) > self::MAX_LENGTH) {
-            return false;
-        }
+        $matches = password_verify(substr($password, 0, self::MAX_LENGTH), $hash);
 
-        return password_verify($password, $hash);
+        return $matches && strlen($password) <= self::MAX_LENGTH;
     }
 
     public function verifyDecoy(string $password): void

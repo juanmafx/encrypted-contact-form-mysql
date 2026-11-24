@@ -34,18 +34,19 @@ frontend/
 db/schema.sql               Database contract
 ```
 
-Dependencies point inward. `Contact` and `Admin` define interfaces such as `SubmissionRepository`, `AdminRepository` and `SubmissionNotifier`. `Persistence` and `Mail` implement them, and only `Application` wires concrete classes together. This is what allows the full HTTP flows to be tested without a database.
+Dependencies point inward. `Contact` and `Admin` define interfaces such as `SubmissionRepository`, `AdminRepository` and `SubmissionNotifier`. `Persistence` and `Mail` implement them, and only `Application` and the CLI entry point `backend/bin/admin.php` wire concrete classes together. This is what allows the full HTTP flows to be tested without a database.
 
 The frontend is server-rendered and ships no JavaScript, which lets the Content Security Policy forbid scripts entirely.
 
 ## Request lifecycle
 
 1. `index.php` loads configuration. Invalid configuration returns a generic 503.
-2. `Kernel` rejects oversized bodies.
+2. `Kernel` rejects bodies whose declared `Content-Length` exceeds 64 KiB.
 3. Every POST must pass Fetch Metadata, Origin and CSRF checks.
-4. The route runs its controller.
-5. Security headers are applied to every response, including errors.
-6. Unhandled exceptions are logged by type only, so personal data does not reach the logs.
+4. A cross-site GET to an admin path gets a same-origin **Continue** link, because the `SameSite=Strict` cookie is absent and starting a session would replace it.
+5. The route runs its controller.
+6. Security headers are applied to every response, including errors.
+7. Unhandled exceptions are logged by type only, so personal data does not reach the logs.
 
 ## Submission flow
 
@@ -65,6 +66,7 @@ password (Argon2id) ──> pending session (5 min) ──> TOTP ──> admin s
 - The session id is regenerated and the CSRF token rotated at each transition.
 - A TOTP step is claimed with a conditional `UPDATE`, so concurrent requests cannot reuse a code.
 - Sessions expire after 15 idle minutes or 8 hours in total.
+- `admin_users.session_version` advances on a password change or TOTP reset, which ends active sessions and pending logins for that admin. A transparent rehash does not advance it.
 
 ## Data model
 
@@ -88,11 +90,12 @@ Internet ──> TLS reverse proxy ──> PHP-FPM (backend/public) ──> priv
 - Give the database user only `SELECT`, `INSERT`, `UPDATE` and `DELETE` at runtime, and apply the schema with a separate account.
 - Keep keys in a secret manager or protected environment file, and back them up separately from the database.
 - Set `TRUSTED_PROXIES` to the exact proxy addresses.
-- Set `post_max_size` close to the application's 64 KiB limit.
+- Set `post_max_size=128K` and `display_errors=Off`. PHP processes an oversized body before the application runs.
 - Schedule `backend/bin/admin.php purge` daily.
 
 ## Known trade-offs
 
 - Sessions use PHP's native handler, so multiple application servers need shared session storage.
-- Changing a password or TOTP secret does not end sessions that are already active; they expire through the timeouts.
+- The per-username login limit (30 attempts per hour) lets a distributed attacker temporarily block sign-in for a known username. It favors protecting the password over availability.
+- A row whose ciphertext fails authentication makes its list page return an error instead of being silently skipped.
 - Mail is sent synchronously with a 10-second timeout, which suits low volume. A queue would be the next step for higher traffic.
