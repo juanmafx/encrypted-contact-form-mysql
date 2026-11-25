@@ -1,4 +1,4 @@
-# Formulario Dorado
+# encrypted-contact-form-mysql
 
 A self-hosted PHP contact form that stores messages encrypted and exposes them only through an admin area protected by a password and TOTP two-factor authentication.
 
